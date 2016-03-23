@@ -4,7 +4,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Created by dongjiejie on 16/3/23.
@@ -17,13 +16,16 @@ public class BlockingQueueT<T> {
 
     private ReentrantLock lock;
 
-    private Condition condition;
+    private Condition full;
+
+    private Condition empty;
 
 
     public BlockingQueueT(int limit) {
         this.limit = limit;
         lock = new ReentrantLock();
-        condition = lock.newCondition();
+        full = lock.newCondition();
+        empty = lock.newCondition();
     }
 
     /**
@@ -35,11 +37,12 @@ public class BlockingQueueT<T> {
     public void enqueue(T obj) throws InterruptedException {
         lock.lock();
         while (data.size() == limit) {
-            condition.await();
+            full.await();
         }
         if (data.size() == 0) {
-            condition.signalAll();
+            empty.signalAll();
         }
+        empty.signal();
         data.add(obj);
         lock.unlock();
     }
@@ -53,11 +56,12 @@ public class BlockingQueueT<T> {
     public synchronized T dequeue() throws InterruptedException {
         lock.lock();
         while (data.size() == 0) {
-            condition.await();
+            empty.await();
         }
         if (data.size() == limit) {
-            condition.signalAll();
+            full.signalAll();
         }
+        full.signal();
 
         T obj = data.remove(0);
         lock.unlock();
