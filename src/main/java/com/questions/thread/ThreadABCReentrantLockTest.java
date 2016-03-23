@@ -19,9 +19,10 @@ public class ThreadABCReentrantLockTest {
     private static String task = "A";
 
     public static void main(String[] args) {
-        new ThreadA().start();
-        new ThreadB().start();
+
         new ThreadC().start();
+        new ThreadB().start();
+        new ThreadA().start();
     }
 
     public static class ThreadA extends Thread {
@@ -68,6 +69,7 @@ public class ThreadABCReentrantLockTest {
             }
         }
     }
+
 
     public static class ThreadC extends Thread {
 
